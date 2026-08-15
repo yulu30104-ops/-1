@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="guide-params" content="182">
 <meta name="guide-topics" content="279">
 <title>月小雨文档</title>
@@ -12,11 +12,11 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.75 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 a{color:var(--brand);text-decoration:none}
 a:hover{color:var(--brand2);text-decoration:underline}
+.dirbar{display:none;width:100%;height:48px;border:0;background:#165dff;color:#fff;font:700 18px/1 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:.18em;cursor:pointer;position:sticky;top:0;z-index:22;align-items:center;justify-content:center}
+.dirbar[aria-expanded="true"]{background:#0e42d2}
 .top{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:9}
 .logo{font-weight:700;color:var(--head);font-size:16px;white-space:nowrap}
 .logo small{display:block;font-weight:400;color:var(--muted);font-size:11px;letter-spacing:.08em}
-.navbtn{display:none;flex:none;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--head);font:14px/1 inherit;cursor:pointer}
-.navbtn:hover,.navbtn[aria-expanded="true"]{border-color:var(--brand);color:var(--brand);background:#e8f3ff}
 .search{flex:1;max-width:420px}
 .search input{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 12px;background:#f7f8fa}
 .top .meta{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
@@ -49,22 +49,35 @@ p{margin:0 0 12px}
 .pager a:hover{border-color:var(--brand);text-decoration:none}
 .pager .dir{display:block;font-size:12px;color:var(--muted)}
 .empty{color:var(--muted);padding:40px 0}
-@media(max-width:860px){
-  .top{padding:0 10px;gap:8px}
-  .logo small{display:none}
-  .top .meta{display:none}
-  .navbtn{display:inline-flex;align-items:center}
-  .side{display:block;position:fixed;left:0;top:56px;bottom:0;width:min(82vw,300px);z-index:8;transform:translateX(-105%);transition:transform .2s ease;box-shadow:none}
-  body.menu-on .side{transform:none;box-shadow:8px 0 24px rgba(0,0,0,.12)}
-  .mask{display:none;position:fixed;left:0;right:0;top:56px;bottom:0;background:rgba(17,24,39,.4);z-index:7}
+body.phone .dirbar{display:flex}
+body.phone .top{height:48px;padding:0 10px;gap:8px;top:48px}
+body.phone .logo small,body.phone .top .meta{display:none}
+body.phone .shell{height:calc(100% - 96px)}
+body.phone .side{position:fixed;left:0;right:0;top:48px;bottom:0;width:100%;z-index:20;border-right:0;transform:none;visibility:hidden;pointer-events:none}
+body.phone.menu-on .side{visibility:visible;pointer-events:auto;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+body.phone .mask{display:none;position:fixed;left:0;right:0;top:48px;bottom:0;background:rgba(17,24,39,.45);z-index:19}
+body.phone.menu-on .mask{display:block}
+body.phone .sec>button{padding:14px 16px;font-size:16px}
+body.phone .kids a{padding:12px 16px 12px 28px;font-size:16px}
+body.phone .page{padding:20px 16px 60px}
+@media(max-width:1200px){
+  body .dirbar{display:flex}
+  body .top{height:48px;padding:0 10px;gap:8px;top:48px}
+  body .logo small,body .top .meta{display:none}
+  body .shell{height:calc(100% - 96px)}
+  body .side{position:fixed;left:0;right:0;top:48px;bottom:0;width:100%;z-index:20;border-right:0;visibility:hidden;pointer-events:none}
+  body.menu-on .side{visibility:visible;pointer-events:auto;box-shadow:0 16px 40px rgba(0,0,0,.2)}
+  body .mask{display:none;position:fixed;left:0;right:0;top:48px;bottom:0;background:rgba(17,24,39,.45);z-index:19}
   body.menu-on .mask{display:block}
-  .page{padding:20px 16px 60px}
+  body .sec>button{padding:14px 16px;font-size:16px}
+  body .kids a{padding:12px 16px 12px 28px;font-size:16px}
+  body .page{padding:20px 16px 60px}
 }
 </style>
 </head>
 <body>
+<button class="dirbar" id="navbtn" type="button" aria-expanded="false">目录</button>
 <header class="top">
-  <button class="navbtn" id="navbtn" type="button" aria-expanded="false">目录</button>
   <div class="logo">月小雨文档<small>灵动视效 · 完整教程</small></div>
   <div class="search"><input id="q" type="search" placeholder="搜索中文名，例如 太阳本源 或 群系雾柱浓度"></div>
   <div class="meta">滑条 182 · 篇目 279</div>
@@ -86,11 +99,16 @@ p{margin:0 0 12px}
   var navbtn = document.getElementById("navbtn");
   var mask = document.getElementById("mask");
 
+  function fitPhone(){
+    var narrow = window.innerWidth < 1200;
+    document.body.classList.toggle("phone", narrow);
+    return narrow;
+  }
   function setMenu(on){
     document.body.classList.toggle("menu-on", !!on);
     if(navbtn){
       navbtn.setAttribute("aria-expanded", on ? "true" : "false");
-      navbtn.textContent = on ? "收起" : "目录";
+      navbtn.textContent = on ? "收起目录" : "目录";
     }
   }
 
@@ -181,6 +199,8 @@ p{margin:0 0 12px}
     mask.onclick = function(){ setMenu(false); };
   }
   window.addEventListener("hashchange", go);
+  window.addEventListener("resize", fitPhone);
+  fitPhone();
   renderSide("");
   go();
 })();
